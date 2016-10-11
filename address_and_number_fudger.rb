@@ -7,14 +7,33 @@ def get_rand_char
 end
 
 def fudge_address addrLineOne
-    if addrLineOne.include? "St."
-      addrLineOne = addrLineOne.sub(/St./) { "Street" }
-    elsif addrLineOne.include? "Ave."
-      addrLineOne = addrLineOne.sub(/Ave./) { "Avenue" }
-    else 
+    if (rand(10000) % 2 == 0)
+      if addrLineOne.include? "St."
+        addrLineOne = addrLineOne.sub(/St./) { "Street" }
+      elsif addrLineOne.include? "Ave."
+        addrLineOne = addrLineOne.sub(/Ave./) { "Avenue" }
+      end 
+    end 
+
+    if (rand(10000) % 2 == 0)
+      if addrLineOne.include? "N."
+        addrLineOne = addrLineOne.sub(/N./) { "North" }
+      elsif addrLineOne.include? "S."
+        addrLineOne = addrLineOne.sub(/Ave./) { "South" }
+      elsif addrLineOne.include? "E."
+        addrLineOne = addrLineOne.sub(/Ave./) { "East" }
+      elsif addrLineOne.include? "W."
+        addrLineOne = addrLineOne.sub(/Ave./) { "West" }
+      end             
+    end 
+
+    i  = rand (5)
+    while i >= 0
       addrLineOne[rand(addrLineOne.length)] = get_rand_char
-      addrLineOne[rand(addrLineOne.length)] = get_rand_char
-    end  
+      i = i - 1
+    end 
+
+    return addrLineOne 
 end
 
 class String
@@ -37,14 +56,13 @@ CSV.open("fudged_addr_and_numbers.csv", "wb") do |dest|
     # Accurate address
     dest << [addrLineOne, city, state, zip, num]
 
-    addrLineOne = fudge_address addrLineOne
+    dest << [fudge_address(addrLineOne), city, state, zip, num]
 
-    # Swap two letters on addressLineOne
-    dest << [addrLineOne, city, state, zip, num]
     # Phone number with hypehns in 3-3-4 format
-    dest << [addrLineOne, city, state, zip, "#{num.insert(3, '-').insert(7, '-')}"]
+    dest << [fudge_address(addrLineOne), city, state, zip, "#{num.insert(3, '-').insert(7, '-')}"]
+    
     # Remove City
-    dest << [addrLineOne, "", state, zip, "#{num}"]
+    dest << [fudge_address(addrLineOne), "", state, zip, "#{num}"]
 
     cnt = cnt + 1
   end

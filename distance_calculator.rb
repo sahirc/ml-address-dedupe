@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'csv'    
-require 'levenshtein'
 
 def levenshtein_distance(s, t)
   if s == nil
@@ -33,7 +32,7 @@ def levenshtein_distance(s, t)
   d[m][n]
 end
 
-fudged_name_adresses_phones_text = File.read('./fudged_name_adresses_phones.csv')
+fudged_name_adresses_phones_text = File.read('./two-addresses.csv')
 fudged_name_adresses_phones_csv = CSV.parse(fudged_name_adresses_phones_text, :headers => false)
 
 CSV.open("aml_input.csv", "wb") do |dest|
