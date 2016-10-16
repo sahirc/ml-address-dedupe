@@ -32,25 +32,26 @@ def levenshtein_distance(s, t)
   d[m][n]
 end
 
-fudged_name_adresses_phones_text = File.read('./two-addresses.csv')
+fudged_name_adresses_phones_text = File.read('./fudged_addr_and_numbers.csv')
 fudged_name_adresses_phones_csv = CSV.parse(fudged_name_adresses_phones_text, :headers => false)
 
 CSV.open("aml_input.csv", "wb") do |dest|
-  fudged_name_adresses_phones_csv.each do |row|
-
-    name, address_line_one, city, state, zip, phone = row
+  fudged_name_adresses_phones_csv.each do |address|
+    address_line_one, address_line_two, city, state, zip, phone = address
 
     fudged_name_adresses_phones_csv.each do |other_addresses|
-      name2, address_line_one2, city2, state2, zip2, phone2 = other_addresses
+      address_line_one2, address_line_two2, city2, state2, zip2, phone2 = other_addresses
 
-      n_dist = 0 # levenshtein_distance name, name2
+      n_dist = 0 # All of a customer's addresses tend to have the same name, so name is a poor feature
+      p_dist = 0 # Similar to name, a customer's number stays with them through addresses so number is not a good indicator of duplicates.
+
       a_dist = levenshtein_distance address_line_one, address_line_one2
+      a2_dist = levenshtein_distance address_line_two, address_line_two2
       c_dist = levenshtein_distance city, city2
       s_dist = levenshtein_distance state, state2
       z_dist = levenshtein_distance zip, zip2
-      p_dist = 0 # levenshtein_distance phone, phone2
 
-      dest << [n_dist, a_dist, c_dist, s_dist, z_dist, p_dist, phone.gsub(/\-\b/, '') == phone2.gsub(/\-\b/, '')]
+      dest << [a_dist, a2_dist, c_dist, s_dist, z_dist, p_dist, phone.gsub(/\-\b/, '') == phone2.gsub(/\-\b/, '')]
     end
   end
 end

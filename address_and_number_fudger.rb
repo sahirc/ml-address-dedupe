@@ -1,12 +1,24 @@
 #!/usr/bin/env ruby
 require 'csv'    
 require 'securerandom'
+require 'set'
 
 def get_rand_char
   return ([*('A'..'Z'),*('0'..'9')]-%w(0 1 I O)).sample(1).join
 end
 
+$fudge = Set.new
 def fudge_address addrLineOne
+
+    addrLineOne = _fudge_address addrLineOne
+    while $fudge.include?(addrLineOne) do
+      addrLineOne = _fudge_address addrLineOne
+    end
+
+    return addrLineOne 
+end
+
+def _fudge_address addrLineOne
     if (rand(10000) % 2 == 0)
       if addrLineOne.include? "St."
         addrLineOne = addrLineOne.sub(/St./) { "Street" }
@@ -31,10 +43,10 @@ def fudge_address addrLineOne
     while i >= 0
       addrLineOne[rand(addrLineOne.length)] = get_rand_char
       i = i - 1
-    end 
+    end   
 
-    return addrLineOne 
-end
+    return addrLineOne
+end   
 
 class String
   def initial
@@ -50,19 +62,29 @@ phone_csv = CSV.parse(phone_text, :headers => false)
 cnt = 0
 CSV.open("fudged_addr_and_numbers.csv", "wb") do |dest|
   addr_csv.each do |addr_row|
-    addrLineOne,city,state,zip , = addr_row
+    addrLineOne, addrLineTwo, city,state,zip , = addr_row
+
+    if addrLineTwo.nil?
+      addrLineTwo = ""
+      p "adding addressLintTo"
+    end
+
     num = phone_csv[cnt][0]
     
-    # Accurate address
-    dest << [addrLineOne, city, state, zip, num]
+    fudged_zip = "#{zip}-#{4.times.map{rand(10)}.join}"
 
-    dest << [fudge_address(addrLineOne), city, state, zip, num]
+    # Accurate address
+    dest << [addrLineOne, addrLineTwo, city, state, zip, num]
+
+    dest << [fudge_address(addrLineOne), addrLineTwo, city, state, zip, num]          
+
+    dest << ["#{fudge_address(addrLineOne)} #{addrLineTwo}", "",city, state, zip, num]
 
     # Phone number with hypehns in 3-3-4 format
-    dest << [fudge_address(addrLineOne), city, state, zip, "#{num.insert(3, '-').insert(7, '-')}"]
-    
+    dest << [fudge_address(addrLineOne), addrLineTwo, city, state, fudged_zip, "#{num.insert(3, '-').insert(7, '-')}"]
+
     # Remove City
-    dest << [fudge_address(addrLineOne), "", state, zip, "#{num}"]
+    dest << [fudge_address(addrLineOne), addrLineTwo, "", state, fudged_zip, "#{num}"]
 
     cnt = cnt + 1
   end
